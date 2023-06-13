@@ -9,13 +9,4 @@
   </li>
 </ul>
 
-<div *ngIf="selectedHero">
-  <h2>{{selectedHero.name | uppercase}} Details</h2>
 
-  <div><span>id: </span>{{selectedHero.id}}</div>
-
-  <div>
-    <label for="hero-name">Hero name:</label>
-    <input [(ngModel)]="selectedHero.name" id="hero-name" placeholder="name" type="text">
-  </div>
-</div>
