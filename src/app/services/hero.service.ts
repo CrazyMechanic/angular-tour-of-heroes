@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HeroInterface } from '../interface/hero.interface';
-import { catchError, Observable, of, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import { MessageService } from './message.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -23,6 +23,19 @@ export class HeroService {
       .pipe(
         tap(_ => this.log('fetched heroes')),
         catchError(this.handleError<HeroInterface[]>('getHeroes', [])),
+      );
+  }
+
+  getHeroNo404<Data>(id: number): Observable<HeroInterface> {
+    const url = `${this.heroesUrl}/?id=${id}`;
+    return this.http.get<HeroInterface[]>(url)
+      .pipe(
+        map(heroes => heroes[0]), // returns a {0|1} element array
+        tap(h => {
+          const outcome = h ? 'fetched' : 'did not find';
+          this.log(`${outcome} hero id=${id}`);
+        }),
+        catchError(this.handleError<HeroInterface>(`getHero id=${id}`)),
       );
   }
 
