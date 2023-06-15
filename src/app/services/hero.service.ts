@@ -13,6 +13,7 @@ export class HeroService {
     headers: new HttpHeaders({'Content-Type': 'application/json'}),
   };
 
+  // private heroesUrl = 'https://tour-of-heroes-be1d4-default-rtdb.europe-west1.firebasedatabase.app/heroes';  // URL to web api
   private heroesUrl = 'api/heroes';  // URL to web api
 
   constructor(private http: HttpClient, private messageService: MessageService) {
