@@ -21,7 +21,13 @@ export class InMemoryDataService implements InMemoryDbService {
     return {heroes};
   }
 
-  genId(heroes: HeroInterface[]): number {
-    return heroes.length > 0 ? Math.max(...heroes.map(hero => hero.id)) + 1 : 11;
+  // public genId(heroes: HeroInterface[]): number {
+  //   return heroes.length > 0 ? Math.max(...heroes.map(hero => hero.id)) + 1 : 11;
+  // }
+  public genId(heroes: HeroInterface[]): number {
+    const maxId = heroes.reduce((max, hero) => {
+      return hero.id && hero.id > max ? hero.id : max;
+    }, 0);
+    return maxId >= 10 ? maxId + 1 : 10;
   }
 }
