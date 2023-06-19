@@ -77,13 +77,33 @@ export class HeroService {
   //     );
   // }
 
+  // addHero(hero: HeroInterface): Observable<HeroInterface> {
+  //   const {id, name} = hero;
+  //   const heroWithIdAndName = {id, name};
+  //
+  //   return this.http.post<HeroInterface>(`${this.heroesUrl}.json`, heroWithIdAndName, this.httpOptions)
+  //     .pipe(
+  //       tap((newHero: HeroInterface) => {
+  //         console.log(newHero);
+  //         this.log(`added hero w/ id=${newHero.id}`);
+  //       }),
+  //       catchError(this.handleError<HeroInterface>('addHero')),
+  //     );
+  // }
+
   addHero(hero: HeroInterface): Observable<HeroInterface> {
-    const {id, name} = hero; // Деструктурируем объект героя на отдельные переменные
-    const heroWithIdAndName = {id, name}; // Создаем новый объект с `id` и `name`
+    const {id, name} = hero;
+    const heroWithIdAndName = {id, name};
 
     return this.http.post<HeroInterface>(`${this.heroesUrl}.json`, heroWithIdAndName, this.httpOptions)
       .pipe(
-        tap((newHero: HeroInterface) => {
+        tap((response: any) => {
+          const newHero: HeroInterface = {
+            key: response.name,
+            id: heroWithIdAndName.id,
+            name: heroWithIdAndName.name,
+          };
+          console.log(newHero);
           this.log(`added hero w/ id=${newHero.id}`);
         }),
         catchError(this.handleError<HeroInterface>('addHero')),

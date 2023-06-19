@@ -26,18 +26,23 @@ export class HeroesComponent implements OnInit {
   add(name: string) {
     name = name.trim();
     if (!name) return;
-
+    console.log(name);
     const id = this.inMemoryDataService.genId(this.heroes);
 
-
-    const hero: HeroInterface = {
+    const newHero: HeroInterface = {
       name: name,
       id: id,
     };
+    console.log(newHero);
 
-    this.heroService.addHero(hero).subscribe(hero => {
+    this.heroService.addHero(newHero).subscribe(hero => {
+      hero = {
+        key: hero.name,
+        id: newHero.id,
+        name: newHero.name,
+      };
       this.heroes.push(hero);
-
+      console.log(hero);
     });
 
     // this.heroService.addHero({name} as HeroInterface).subscribe(hero => {
