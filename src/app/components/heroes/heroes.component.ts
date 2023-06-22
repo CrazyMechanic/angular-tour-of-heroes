@@ -26,14 +26,12 @@ export class HeroesComponent implements OnInit {
   add(name: string) {
     name = name.trim();
     if (!name) return;
-    console.log(name);
     const id = this.inMemoryDataService.genId(this.heroes);
 
     const newHero: HeroInterface = {
       name: name,
       id: id,
     };
-    console.log(newHero);
 
     this.heroService.addHero(newHero).subscribe(hero => {
       hero = {
@@ -42,16 +40,11 @@ export class HeroesComponent implements OnInit {
         name: newHero.name,
       };
       this.heroes.push(hero);
-      console.log(hero);
     });
-
-    // this.heroService.addHero({name} as HeroInterface).subscribe(hero => {
-    //   this.heroes.push(hero);
-    // });
   }
 
   delete(hero: HeroInterface) {
     this.heroes = this.heroes.filter(h => h !== hero);
-    this.heroService.deleteHero(hero.id).subscribe();
+    this.heroService.deleteHero(hero).subscribe();
   }
 }

@@ -5,6 +5,7 @@ import { MessageService } from './message.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ResponseHeroInterface } from '../interface/response-hero.interface';
 import { environment } from '../../environments/environment';
+import { InMemoryDataService } from './in-memory-data.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,13 +20,14 @@ export class HeroService {
 
   // private heroesUrl = 'api/heroes';
 
-  constructor(private http: HttpClient, private messageService: MessageService) {
+  constructor(private http: HttpClient, private messageService: MessageService, private inMemoryDataService: InMemoryDataService) {
   }
 
   getHeroes(): Observable<HeroInterface[]> {
     return this.http.get<ResponseHeroInterface>(`${this.heroesUrl}.json`)
       .pipe(map((res: ResponseHeroInterface) => {
         const arr: HeroInterface[] = [];
+        if (res === null) res = {};
         Object.keys(res).forEach(key => arr.push({key, ...res[key]}));
         return arr;
       }))
@@ -48,48 +50,35 @@ export class HeroService {
       );
   }
 
-  getHero(id: number): Observable<HeroInterface> {
-    const url = `${this.heroesUrl}/${id}.json`;
-    return this.http.get<HeroInterface>(url)
+  getHero(hero: string): Observable<HeroInterface> {
+    console.log(hero);
+    const url = `${this.heroesUrl}.json`;
+
+    return this.http.get<{ [key: string]: { id: number, name: string } }>(url)
       .pipe(
-        tap(_ => this.log(`fetched hero id=${id}`)),
-        catchError(this.handleError<HeroInterface>(`getHero id=${id}`)),
+        map((res: { [key: string]: { id: number, name: string } }) => {
+          const desiredHero = res[hero];
+
+          if (desiredHero) {
+            this.log(`fetched hero id=${desiredHero.id}`);
+            return desiredHero;
+          } else {
+            throw new Error(`Hero with id ${hero} not found.`);
+          }
+        }),
+        catchError(this.handleError<HeroInterface>(`getHero id=${hero}`)),
       );
   }
 
   updateHero(hero: HeroInterface): Observable<any> {
-    return this.http.put(`${this.heroesUrl}.json`, hero, this.httpOptions)
+    console.log(hero);
+    return this.http.put(`${this.heroesUrl}/${hero.key}.json`, hero, this.httpOptions)
       .pipe(
         tap(_ => this.log(`updated hero id=${hero.id}`)),
         catchError(this.handleError<any>('updateHero')),
       );
 
   }
-
-  // addHero(hero: HeroInterface): Observable<HeroInterface> {
-  //   return this.http.post<HeroInterface>(`${this.heroesUrl}.json`, hero, this.httpOptions)
-  //     .pipe(
-  //       tap((newHero: HeroInterface) => {
-  //
-  //         this.log(`added hero w/ id=${newHero.id}`);
-  //       }),
-  //       catchError(this.handleError<HeroInterface>('addHero')),
-  //     );
-  // }
-
-  // addHero(hero: HeroInterface): Observable<HeroInterface> {
-  //   const {id, name} = hero;
-  //   const heroWithIdAndName = {id, name};
-  //
-  //   return this.http.post<HeroInterface>(`${this.heroesUrl}.json`, heroWithIdAndName, this.httpOptions)
-  //     .pipe(
-  //       tap((newHero: HeroInterface) => {
-  //         console.log(newHero);
-  //         this.log(`added hero w/ id=${newHero.id}`);
-  //       }),
-  //       catchError(this.handleError<HeroInterface>('addHero')),
-  //     );
-  // }
 
   addHero(hero: HeroInterface): Observable<HeroInterface> {
     const {id, name} = hero;
@@ -103,31 +92,54 @@ export class HeroService {
             id: heroWithIdAndName.id,
             name: heroWithIdAndName.name,
           };
-          console.log(newHero);
           this.log(`added hero w/ id=${newHero.id}`);
         }),
         catchError(this.handleError<HeroInterface>('addHero')),
       );
   }
 
-
-  deleteHero(id: number): Observable<HeroInterface> {
+  deleteHero(hero: HeroInterface): Observable<HeroInterface> {
+    const id = hero.key;
     const url = `${this.heroesUrl}/${id}.json`;
 
     return this.http.delete<HeroInterface>(url, this.httpOptions)
       .pipe(
-        tap(_ => this.log(`deleted hero id=${id}`)),
+        tap(_ => this.log(`deleted hero id=${hero.id}`)),
         catchError(this.handleError<HeroInterface>('deleteHero')),
       );
   }
 
   searchHeroes(term: string): Observable<HeroInterface[]> {
-    if (!term.trim()) return of([]);
+    const trimmedTerm = term.trim();
 
-    return this.http.get<HeroInterface[]>(`${this.heroesUrl}/?name=${term}.json`).pipe(
-      tap(x => x.length ?
-        this.log(`found heroes matching "${term}"`) :
-        this.log(`no heroes matching "${term}"`)),
+    if (!trimmedTerm) return of([]);
+
+    return this.http.get<{ [key: string]: HeroInterface }>(`${this.heroesUrl}.json`).pipe(
+      map(response => {
+        const heroes: HeroInterface[] = [];
+
+        for (const key in response) {
+          if (response.hasOwnProperty(key)) {
+            const heroData = response[key];
+            const name = heroData.name.trim();
+            if (name.includes(trimmedTerm)) {
+              const hero: HeroInterface = {
+                key: key,
+                id: heroData.id,
+                name: heroData.name,
+              };
+              heroes.push(hero);
+            }
+          }
+        }
+        console.log(heroes);
+        return heroes;
+      }),
+      tap(heroes => {
+        heroes.length ?
+          this.log(`found heroes matching "${term}"`) :
+          this.log(`no heroes matching "${term}"`);
+      }),
       catchError(this.handleError<HeroInterface[]>('searchHeroes', [])),
     );
   }
@@ -143,5 +155,4 @@ export class HeroService {
       return of(result as T);
     };
   }
-
 }

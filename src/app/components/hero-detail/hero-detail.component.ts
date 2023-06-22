@@ -12,7 +12,13 @@ import { Location } from '@angular/common';
 export class HeroDetailComponent implements OnInit {
   hero: HeroInterface | undefined;
 
-  constructor(private route: ActivatedRoute, private heroService: HeroService, private location: Location) {
+  heroes: any[] = [];
+
+  constructor(
+    private route: ActivatedRoute,
+    private heroService: HeroService,
+    private location: Location,
+  ) {
   }
 
   ngOnInit() {
@@ -20,8 +26,11 @@ export class HeroDetailComponent implements OnInit {
   }
 
   getHero(): void {
-    const id = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
-    this.heroService.getHero(id).subscribe(hero => this.hero = hero);
+    const key: string = this.route.snapshot.paramMap.get('key')!;
+
+    this.heroService.getHero(key).subscribe(hero => {
+      this.hero = hero;
+    });
   }
 
 
@@ -30,7 +39,10 @@ export class HeroDetailComponent implements OnInit {
   }
 
   save() {
+    const key: string = this.route.snapshot.paramMap.get('key')!;
     if (this.hero) {
+      this.hero.key = key;
+      console.log(this.hero);
       this.heroService.updateHero(this.hero).subscribe(() => this.goBack());
     }
   }
